@@ -23,6 +23,13 @@ export default function Home() {
     }
   }, [user, session, loading, router]);
 
+  useEffect(() => {
+    const fallback = setTimeout(() => {
+      if (loading) router.push("/login");
+    }, 6000);
+    return () => clearTimeout(fallback);
+  }, [loading, router]);
+
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-amber-50 to-emerald-50" />
