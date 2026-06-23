@@ -26,14 +26,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setAuthUser(session?.user ?? null);
       if (session?.user) {
-        loadProfile(session.user.id);
+        loadProfile(session.user.id).finally(() => clearTimeout(timeout));
       } else {
         setLoading(false);
+        clearTimeout(timeout);
       }
+    }).catch(() => {
+      setLoading(false);
+      clearTimeout(timeout);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -49,20 +57,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   async function loadProfile(userId: string) {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
 
-    if (data) {
-      setUser(data);
+      if (data && !error) {
+        setUser(data);
+      }
+    } catch (e) {
+      console.error("Failed to load profile:", e);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   async function signInWithGoogle() {
