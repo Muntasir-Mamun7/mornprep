@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#d4802a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#e9a84a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#567a5b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#567a5b;stop-opacity:0.7" />
+      <stop offset="100%" style="stop-color:#d4802a;stop-opacity:0.5" />
+    </linearGradient>
+  </defs>
+  <path d="M96 16c30 0 60 15 68 45s-8 53-23 68c-15 15-38 30-60 30s-45-15-56-38c-12-22-4-53 15-71S66 16 96 16z" fill="url(#g1)"/>
+  <path d="M112 52c19 4 34 19 30 38s-23 30-41 26-30-19-26-38 18-30 37-26z" fill="url(#g2)" opacity="0.5"/>
+  <text x="96" y="102" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="32" font-weight="700" fill="white" letter-spacing="-1">MoRN</text>
+  <text x="96" y="132" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="400" fill="rgba(255,255,255,0.9)" letter-spacing="2">PREP</text>
+</svg>

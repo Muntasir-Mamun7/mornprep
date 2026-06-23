@@ -1,0 +1,267 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700&display=swap');
+
+:root {
+  --color-primary: #d4802a;
+  --color-accent: #567a5b;
+  --bg-base: #faf7f2;
+  --bg-card: rgba(255, 255, 255, 0.65);
+  --bg-card-solid: #ffffff;
+  --border-glass: rgba(255, 255, 255, 0.4);
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b7280;
+  --text-muted: #9ca3af;
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.06);
+  --shadow-elevated: 0 20px 60px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] {
+  --bg-base: #0f1117;
+  --bg-card: rgba(30, 32, 40, 0.7);
+  --bg-card-solid: #1e2028;
+  --border-glass: rgba(255, 255, 255, 0.08);
+  --text-primary: #f1f1f3;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.3);
+  --shadow-elevated: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+@layer base {
+  body {
+    @apply font-sans antialiased transition-colors duration-300;
+    background: var(--bg-base);
+    color: var(--text-primary);
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 rounded-2xl font-medium text-white
+    active:scale-[0.97] transition-all duration-200
+    shadow-lg;
+    background: linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary) 80%, black));
+    box-shadow: 0 4px 20px color-mix(in srgb, var(--color-primary) 30%, transparent);
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 6px 28px color-mix(in srgb, var(--color-primary) 40%, transparent);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 rounded-2xl font-medium
+    active:scale-[0.97] transition-all duration-200;
+    background: var(--bg-card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border-glass);
+    color: var(--text-primary);
+  }
+
+  .btn-secondary:hover {
+    background: color-mix(in srgb, var(--color-accent) 10%, var(--bg-card));
+  }
+
+  .btn-ghost {
+    @apply px-4 py-2 rounded-xl transition-all duration-200;
+    color: var(--text-secondary);
+  }
+
+  .btn-ghost:hover {
+    background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  }
+
+  .btn-google {
+    @apply w-full flex items-center justify-center gap-3 px-6 py-3.5
+    rounded-2xl font-medium
+    hover:shadow-md active:scale-[0.98] transition-all duration-200;
+    background: var(--bg-card-solid);
+    border: 1px solid var(--border-glass);
+    color: var(--text-primary);
+  }
+
+  .glass {
+    backdrop-filter: blur(20px) saturate(1.2);
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-glass);
+    transition: all 0.3s ease;
+  }
+
+  .glass:hover {
+    box-shadow: var(--shadow-elevated);
+  }
+
+  .glass-sm {
+    backdrop-filter: blur(16px) saturate(1.1);
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: var(--shadow-glass);
+  }
+
+  .card {
+    backdrop-filter: blur(16px) saturate(1.1);
+    background: var(--bg-card);
+    border: 1px solid var(--border-glass);
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+    box-shadow: var(--shadow-glass);
+    transition: all 0.2s ease;
+  }
+
+  .card:hover {
+    box-shadow: var(--shadow-elevated);
+    transform: translateY(-1px);
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3.5 rounded-xl outline-none transition-all duration-200;
+    background: color-mix(in srgb, var(--bg-card-solid) 80%, transparent);
+    backdrop-filter: blur(8px);
+    border: 1.5px solid var(--border-glass);
+    color: var(--text-primary);
+  }
+
+  .input-field:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+  }
+
+  .input-field::placeholder {
+    color: var(--text-muted);
+  }
+
+  .input-glass {
+    @apply w-full px-4 py-3.5 rounded-xl outline-none transition-all duration-200;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(8px);
+    border: 1.5px solid var(--border-glass);
+    color: var(--text-primary);
+  }
+
+  .input-glass:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  .input-glass::placeholder {
+    color: var(--text-muted);
+  }
+
+  .badge-good {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+    background: rgba(34, 197, 94, 0.12);
+    color: #16a34a;
+    border: 1px solid rgba(34, 197, 94, 0.2);
+  }
+
+  .badge-okay {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+    background: rgba(234, 179, 8, 0.12);
+    color: #ca8a04;
+    border: 1px solid rgba(234, 179, 8, 0.2);
+  }
+
+  .badge-bad {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+    background: rgba(239, 68, 68, 0.12);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  .page-container {
+    @apply max-w-lg mx-auto px-4 py-6 pb-28 min-h-screen animate-fade-in;
+  }
+
+  .page-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: var(--bg-base);
+    overflow: hidden;
+  }
+
+  .page-bg::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    right: -20%;
+    width: 60%;
+    height: 60%;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+    filter: blur(80px);
+    animation: float-slow 12s ease-in-out infinite;
+  }
+
+  .page-bg::after {
+    content: '';
+    position: absolute;
+    bottom: -10%;
+    left: -15%;
+    width: 50%;
+    height: 50%;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+    filter: blur(80px);
+    animation: float 10s ease-in-out infinite;
+  }
+
+  .skeleton {
+    @apply rounded-xl;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--text-muted) 10%, transparent) 0%,
+      color-mix(in srgb, var(--text-muted) 20%, transparent) 50%,
+      color-mix(in srgb, var(--text-muted) 10%, transparent) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite linear;
+  }
+
+  .toast-container {
+    @apply fixed bottom-24 left-1/2 -translate-x-1/2 z-50;
+  }
+
+  .toast {
+    @apply px-5 py-3 rounded-2xl text-sm font-medium text-white animate-toast;
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    box-shadow: 0 8px 30px color-mix(in srgb, var(--color-primary) 30%, transparent);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(3deg); }
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(-2deg); }
+}
+
+@keyframes blob {
+  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-blob-delay {
+  animation: blob 7s ease-in-out infinite 2s;
+}
+
+.animate-blob-delay-2 {
+  animation: blob 7s ease-in-out infinite 4s;
+}
