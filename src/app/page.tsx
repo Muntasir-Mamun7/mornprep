@@ -26,7 +26,8 @@ export default function Home() {
   useEffect(() => {
     const fallback = setTimeout(() => {
       if (loading) router.push("/login");
-    }, 6000);
+    }, 3000);
+    if (!loading) clearTimeout(fallback);
     return () => clearTimeout(fallback);
   }, [loading, router]);
 
