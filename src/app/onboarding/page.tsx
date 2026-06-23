@@ -46,16 +46,20 @@ export default function OnboardingPage() {
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [multiSelect, setMultiSelect] = useState<string[]>([]);
   const router = useRouter();
-  const { saveProfile, user } = useAuth();
+  const { saveProfile, user, loading } = useAuth();
 
   useEffect(() => {
+    if (!loading && user?.onboarding_completed) {
+      router.push("/dashboard");
+      return;
+    }
     const saved = localStorage.getItem("mornprep_onboarding");
     if (saved) {
       const parsed = JSON.parse(saved);
       setAnswers(parsed.answers || {});
       setStep(parsed.step || 0);
     }
-  }, []);
+  }, [user, loading, router]);
 
   const activeQuestions = questions.filter(
     (q) => !q.condition || q.condition(answers)
