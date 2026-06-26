@@ -9,15 +9,28 @@ export default function Home() {
   const router = useRouter();
   const [message, setMessage] = useState("Loading...");
 
+  // Instant redirect using cached profile (no waiting for network)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const cached = localStorage.getItem("mornprep-profile");
+    const hasAuth = localStorage.getItem("mornprep-auth");
+    if (cached && hasAuth) {
+      const profile = JSON.parse(cached);
+      if (profile.onboarding_completed) {
+        router.push("/dashboard");
+        return;
+      }
+    }
+  }, [router]);
+
   useEffect(() => {
     if (!loading) {
       if (session && user?.onboarding_completed) {
-        setMessage("Almost there...");
-        setTimeout(() => router.push("/dashboard"), 400);
+        router.push("/dashboard");
       } else if (session && !user?.onboarding_completed) {
         setMessage("Setting things up...");
-        setTimeout(() => router.push("/onboarding"), 400);
-      } else {
+        router.push("/onboarding");
+      } else if (!session) {
         router.push("/login");
       }
     }
