@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -23,13 +23,11 @@ export default function DashboardPage() {
     if (!loading && !user) router.push("/login");
   }, [user, loading, router]);
 
-  useEffect(() => {
-    if (user) loadTodayMeals();
-  }, [user]);
-
-  async function loadTodayMeals() {
+  const loadTodayMeals = useCallback(async () => {
     if (!user) return;
     const today = new Date().toISOString().split("T")[0];
+    // Refresh session before querying
+    await supabase.auth.getSession();
     const { data } = await supabase
       .from("meals")
       .select("*")
@@ -37,7 +35,22 @@ export default function DashboardPage() {
       .eq("date", today);
     if (data) setMeals(data);
     setDataLoading(false);
-  }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) loadTodayMeals();
+  }, [user, loadTodayMeals]);
+
+  // Reload data when app comes back from background
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState === "visible" && user) {
+        loadTodayMeals();
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [user, loadTodayMeals]);
 
   function checkFood() {
     if (!todayFood.trim() || !user) return;
