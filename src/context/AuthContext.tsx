@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useRef, ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
 import { UserProfile } from "@/lib/types";
 import { Session, User } from "@supabase/supabase-js";
@@ -41,8 +41,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [authUser, setAuthUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const logoutFlagRef = useRef<() => void>(() => {});
 
   useEffect(() => {
+    let manualLogout = false;
     const timeout = setTimeout(() => setLoading(false), 3000);
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -51,8 +53,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         loadProfile(session.user.id).finally(() => clearTimeout(timeout));
       } else {
-        setCachedProfile(null);
-        setUser(null);
+        // Only clear if there's no cached profile (fresh visit with no login)
+        const cached = getCachedProfile();
+        if (!cached) {
+          setUser(null);
+        }
         setLoading(false);
         clearTimeout(timeout);
       }
@@ -62,18 +67,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setAuthUser(session?.user ?? null);
-        if (session?.user) {
-          await loadProfile(session.user.id);
-        } else {
+      async (event, session) => {
+        if (event === "SIGNED_OUT" && manualLogout) {
+          // Only clear everything on explicit user logout
+          setSession(null);
+          setAuthUser(null);
           setUser(null);
           setCachedProfile(null);
           setLoading(false);
+          manualLogout = false;
+        } else if (event === "SIGNED_OUT" && !manualLogout) {
+          // Token refresh failed — don't log out, try to recover
+          const { data } = await supabase.auth.getSession();
+          if (data.session) {
+            setSession(data.session);
+            setAuthUser(data.session.user);
+          }
+          // Keep cached profile either way — user stays "logged in" visually
+        } else if (session?.user) {
+          setSession(session);
+          setAuthUser(session.user);
+          await loadProfile(session.user.id);
         }
       }
     );
+
+    // Expose manualLogout flag for the logout function
+    logoutFlagRef.current = () => { manualLogout = true; };
 
     return () => {
       subscription.unsubscribe();
@@ -136,6 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function logout() {
+    logoutFlagRef.current();
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
