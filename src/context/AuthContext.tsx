@@ -95,9 +95,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Expose manualLogout flag for the logout function
     logoutFlagRef.current = () => { manualLogout = true; };
 
+    // Refresh session when app comes back from background
+    function handleVisibility() {
+      if (document.visibilityState === "visible") {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session?.user) {
+            setSession(session);
+            setAuthUser(session.user);
+          }
+        });
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+
     return () => {
       subscription.unsubscribe();
       clearTimeout(timeout);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, []);
 
