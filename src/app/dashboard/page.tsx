@@ -57,7 +57,7 @@ export default function DashboardPage() {
     setGuidance(result);
   }
 
-  if (loading || !user) return null;
+  if (!user) return null;
 
   const daysLeft = getDaysLeftInWeek();
   const readyMeals = meals.filter((m) => m.status === "cooked" || m.is_in_fridge).length;
