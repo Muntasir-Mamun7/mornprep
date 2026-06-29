@@ -41,7 +41,7 @@ function RecipeDetail() {
     loadRecipe();
   }
 
-  if (loading || !user || !recipe) return null;
+  if (!user || !recipe) return null;
 
   return (
     <div className="page-container">
