@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -10,7 +10,7 @@ import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 
 export default function MealsPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshKey } = useAuth();
   const router = useRouter();
   const [meals, setMeals] = useState<Meal[]>([]);
   const [showAdd, setShowAdd] = useState(false);
@@ -23,16 +23,27 @@ export default function MealsPage() {
     if (!loading && !user) router.push("/login");
   }, [user, loading, router]);
 
-  useEffect(() => {
-    if (user) loadMeals();
+  const loadMeals = useCallback(async () => {
+    if (!user) return;
+    try {
+      await supabase.auth.refreshSession();
+      const { data } = await supabase.from("meals").select("*")
+        .eq("user_id", user.id).order("date", { ascending: false }).limit(30);
+      if (data) setMeals(data);
+    } catch {}
   }, [user]);
 
-  async function loadMeals() {
-    if (!user) return;
-    const { data } = await supabase.from("meals").select("*")
-      .eq("user_id", user.id).order("date", { ascending: false }).limit(30);
-    if (data) setMeals(data);
-  }
+  useEffect(() => {
+    if (user) loadMeals();
+  }, [user, loadMeals, refreshKey]);
+
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState === "visible" && user) loadMeals();
+    }
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [user, loadMeals]);
 
   async function addMeal() {
     if (!user || !newMeal.name.trim()) return;
@@ -178,18 +189,4 @@ function MealCard({ meal, onUpdate, onDelete }: {
           )}
           {meal.status === "cooked" && (
             <button onClick={() => onUpdate(meal.id, "eaten")}
-              className="text-[10px] px-2.5 py-1 rounded-lg font-medium"
-              style={{ background: "rgba(34, 197, 94, 0.1)", color: "#16a34a" }}>
-              Eaten
-            </button>
-          )}
-          <button onClick={() => onDelete(meal.id)}
-            className="text-[10px] px-2 py-1 rounded-lg font-medium"
-            style={{ background: "rgba(239, 68, 68, 0.08)", color: "#dc2626" }}>
-            ✕
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
+              className="text-[10
