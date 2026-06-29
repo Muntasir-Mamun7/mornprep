@@ -178,7 +178,8 @@
   }
 
   .page-container {
-    @apply max-w-lg mx-auto px-4 py-6 pb-28 min-h-screen animate-fade-in;
+    @apply max-w-lg mx-auto px-4 py-6 pb-28 min-h-screen;
+    animation: pageIn 0.15s ease-out;
   }
 
   .page-bg {
@@ -256,6 +257,20 @@
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+@keyframes pageIn {
+  from { opacity: 0.6; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
 }
 
 .animate-blob-delay {
