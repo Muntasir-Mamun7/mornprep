@@ -55,7 +55,7 @@ export default function PlannerPage() {
     loadWeek();
   }
 
-  if (loading || !user) return null;
+  if (!user) return null;
 
   const start = startOfWeek(new Date(), { weekStartsOn: 6 });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(start, i));
