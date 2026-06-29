@@ -78,7 +78,7 @@ export default function WaterPage() {
     }
   }
 
-  if (loading || !user) return null;
+  if (!user) return null;
 
   const percentage = Math.min((todayTotal / goal) * 100, 100);
   const remaining = Math.max(goal - todayTotal, 0);
