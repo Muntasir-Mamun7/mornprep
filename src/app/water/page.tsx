@@ -12,7 +12,7 @@ import Toast, { useToast } from "@/components/Toast";
 import BottomNav from "@/components/BottomNav";
 
 export default function WaterPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshKey } = useAuth();
   const router = useRouter();
   const [todayTotal, setTodayTotal] = useState(0);
   const [logs, setLogs] = useState<{ id: string; amount_ml: number; created_at: string }[]>([]);
@@ -25,6 +25,25 @@ export default function WaterPage() {
     if (!loading && !user) router.push("/login");
   }, [user, loading, router]);
 
+  const loadWater = useCallback(async () => {
+    if (!user) return;
+    try {
+      await supabase.auth.refreshSession();
+      const today = formatDate(new Date());
+      const { data } = await supabase
+        .from("water_logs")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("date", today)
+        .order("created_at", { ascending: false });
+
+      if (data) {
+        setLogs(data);
+        setTodayTotal(data.reduce((sum: number, l: any) => sum + l.amount_ml, 0));
+      }
+    } catch {}
+  }, [user]);
+
   useEffect(() => {
     if (user) {
       loadWater();
@@ -34,23 +53,19 @@ export default function WaterPage() {
         scheduleWaterReminder();
       }
     }
-  }, [user]);
+  }, [user, loadWater]);
 
-  async function loadWater() {
-    if (!user) return;
-    const today = formatDate(new Date());
-    const { data } = await supabase
-      .from("water_logs")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("date", today)
-      .order("created_at", { ascending: false });
+  useEffect(() => {
+    if (user && refreshKey > 0) loadWater();
+  }, [refreshKey, user, loadWater]);
 
-    if (data) {
-      setLogs(data);
-      setTodayTotal(data.reduce((sum: number, l: any) => sum + l.amount_ml, 0));
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState === "visible" && user) loadWater();
     }
-  }
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [user, loadWater]);
 
   async function addWater(amount: number) {
     if (!user) return;
