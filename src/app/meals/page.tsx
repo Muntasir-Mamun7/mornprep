@@ -58,7 +58,7 @@ export default function MealsPage() {
     loadMeals();
   }
 
-  if (loading || !user) return null;
+  if (!user) return null;
 
   const fridgeMeals = meals.filter((m) => m.is_in_fridge && m.status !== "eaten");
   const otherMeals = meals.filter((m) => !m.is_in_fridge || m.status === "eaten");
