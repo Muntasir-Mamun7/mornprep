@@ -71,7 +71,7 @@ export default function PeriodPage() {
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const startDay = monthStart.getDay();
 
-  if (loading || !user || user.gender !== "female") return null;
+  if (!user || user.gender !== "female") return null;
 
   return (
     <div className="page-container">
