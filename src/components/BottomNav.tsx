@@ -35,7 +35,8 @@ export default function BottomNav() {
               <Link
                 key={tab.href}
                 href={tab.href}
-                className="flex flex-col items-center py-1 px-3 rounded-xl transition-all duration-200"
+                prefetch={true}
+                className="flex flex-col items-center py-1 px-3 rounded-xl active:scale-90 transition-transform duration-100"
                 style={{ color: active ? "var(--color-primary)" : "var(--text-muted)" }}
               >
                 <svg
