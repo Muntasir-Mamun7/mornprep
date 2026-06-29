@@ -89,7 +89,7 @@ export default function RecipesPage() {
     }
   }
 
-  if (loading || !user) return null;
+  if (!user) return null;
 
   return (
     <div className="page-container">
