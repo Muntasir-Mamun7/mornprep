@@ -10,6 +10,7 @@ interface AuthContextType {
   session: Session | null;
   authUser: User | null;
   loading: boolean;
+  refreshKey: number;
   signInWithGoogle: () => Promise<void>;
   signInWithEmail: (email: string, password: string) => Promise<string | null>;
   signUpWithEmail: (email: string, password: string, displayName: string) => Promise<string | null>;
@@ -41,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [authUser, setAuthUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
   const logoutFlagRef = useRef<() => void>(() => {});
 
   useEffect(() => {
@@ -53,7 +55,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session?.user) {
         loadProfile(session.user.id).finally(() => clearTimeout(timeout));
       } else {
-        // Only clear if there's no cached profile (fresh visit with no login)
         const cached = getCachedProfile();
         if (!cached) {
           setUser(null);
@@ -69,7 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === "SIGNED_OUT" && manualLogout) {
-          // Only clear everything on explicit user logout
           setSession(null);
           setAuthUser(null);
           setUser(null);
@@ -77,13 +77,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setLoading(false);
           manualLogout = false;
         } else if (event === "SIGNED_OUT" && !manualLogout) {
-          // Token refresh failed — don't log out, try to recover
-          const { data } = await supabase.auth.getSession();
+          // Token expired — force refresh instead of logging out
+          const { data } = await supabase.auth.refreshSession();
           if (data.session) {
             setSession(data.session);
             setAuthUser(data.session.user);
+            setRefreshKey((k) => k + 1);
           }
-          // Keep cached profile either way — user stays "logged in" visually
+        } else if (event === "TOKEN_REFRESHED" && session) {
+          setSession(session);
+          setAuthUser(session.user);
+          setRefreshKey((k) => k + 1);
         } else if (session?.user) {
           setSession(session);
           setAuthUser(session.user);
@@ -92,16 +96,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // Expose manualLogout flag for the logout function
     logoutFlagRef.current = () => { manualLogout = true; };
 
-    // Refresh session when app comes back from background
+    // Force refresh session when app comes back from background
     function handleVisibility() {
       if (document.visibilityState === "visible") {
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        supabase.auth.refreshSession().then(({ data: { session } }) => {
           if (session?.user) {
             setSession(session);
             setAuthUser(session.user);
+            setRefreshKey((k) => k + 1);
           }
         });
       }
@@ -195,7 +199,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, session, authUser, loading, signInWithGoogle, signInWithEmail, signUpWithEmail, logout, saveProfile }}
+      value={{ user, session, authUser, loading, refreshKey, signInWithGoogle, signInWithEmail, signUpWithEmail, logout, saveProfile }}
     >
       {children}
     </AuthContext.Provider>
