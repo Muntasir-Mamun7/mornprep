@@ -12,7 +12,7 @@ import { DashboardSkeleton } from "@/components/Skeleton";
 import BottomNav from "@/components/BottomNav";
 
 export default function DashboardPage() {
-  const { user, loading, logout } = useAuth();
+  const { user, loading, refreshKey } = useAuth();
   const router = useRouter();
   const [meals, setMeals] = useState<Meal[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
@@ -26,8 +26,6 @@ export default function DashboardPage() {
   const loadTodayMeals = useCallback(async () => {
     if (!user) return;
     const today = new Date().toISOString().split("T")[0];
-    // Refresh session before querying
-    await supabase.auth.getSession();
     const { data } = await supabase
       .from("meals")
       .select("*")
@@ -37,15 +35,16 @@ export default function DashboardPage() {
     setDataLoading(false);
   }, [user]);
 
+  // Load on mount and reload whenever session refreshes
   useEffect(() => {
     if (user) loadTodayMeals();
-  }, [user, loadTodayMeals]);
+  }, [user, loadTodayMeals, refreshKey]);
 
   // Reload data when app comes back from background
   useEffect(() => {
     function handleVisibility() {
       if (document.visibilityState === "visible" && user) {
-        loadTodayMeals();
+        supabase.auth.refreshSession().then(() => loadTodayMeals());
       }
     }
     document.addEventListener("visibilitychange", handleVisibility);
