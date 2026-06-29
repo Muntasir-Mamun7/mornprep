@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -11,7 +11,7 @@ import Header from "@/components/Header";
 import BottomNav from "@/components/BottomNav";
 
 export default function PlannerPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshKey } = useAuth();
   const router = useRouter();
   const [weekMeals, setWeekMeals] = useState<Record<string, Meal[]>>({});
   const [selectedDate, setSelectedDate] = useState(formatDate(new Date()));
@@ -22,28 +22,39 @@ export default function PlannerPage() {
     if (!loading && !user) router.push("/login");
   }, [user, loading, router]);
 
-  useEffect(() => {
-    if (user) loadWeek();
+  const loadWeek = useCallback(async () => {
+    if (!user) return;
+    try {
+      await supabase.auth.refreshSession();
+      const start = startOfWeek(new Date(), { weekStartsOn: 6 });
+      const dates = Array.from({ length: 7 }, (_, i) => formatDate(addDays(start, i)));
+
+      const { data } = await supabase.from("meals").select("*")
+        .eq("user_id", user.id).in("date", dates).order("created_at");
+
+      if (data) {
+        const grouped: Record<string, Meal[]> = {};
+        dates.forEach((d) => (grouped[d] = []));
+        data.forEach((m: Meal) => {
+          if (!grouped[m.date]) grouped[m.date] = [];
+          grouped[m.date].push(m);
+        });
+        setWeekMeals(grouped);
+      }
+    } catch {}
   }, [user]);
 
-  async function loadWeek() {
-    if (!user) return;
-    const start = startOfWeek(new Date(), { weekStartsOn: 6 });
-    const dates = Array.from({ length: 7 }, (_, i) => formatDate(addDays(start, i)));
+  useEffect(() => {
+    if (user) loadWeek();
+  }, [user, loadWeek, refreshKey]);
 
-    const { data } = await supabase.from("meals").select("*")
-      .eq("user_id", user.id).in("date", dates).order("created_at");
-
-    if (data) {
-      const grouped: Record<string, Meal[]> = {};
-      dates.forEach((d) => (grouped[d] = []));
-      data.forEach((m: Meal) => {
-        if (!grouped[m.date]) grouped[m.date] = [];
-        grouped[m.date].push(m);
-      });
-      setWeekMeals(grouped);
+  useEffect(() => {
+    function handleVisibility() {
+      if (document.visibilityState === "visible" && user) loadWeek();
     }
-  }
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [user, loadWeek]);
 
   async function addPlannedMeal() {
     if (!user || !addingMeal.trim()) return;
